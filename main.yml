@@ -1,0 +1,10 @@
+---
+- name: Déployer une page de maintenance dynamique avec NGINX
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - /root/projet/roles/ansible-role-maintenance/
+
+

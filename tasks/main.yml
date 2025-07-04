@@ -1,0 +1,121 @@
+
+- name: Mise à jour du cache des paquets
+  apt:
+    update_cache: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+
+- name: Mise à jour du cache des paquets
+  dnf:
+    update_cache: yes
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+- name: Installation de NGINX
+  apt:
+    name: nginx
+    state: present
+  when: ansible_facts['os_family'] == "Debian"
+
+
+- name: Installation de NGINX
+  dnf:
+    name: nginx
+    state: present
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+- name: Définir le répertoire web pour Debian/Ubuntu
+  set_fact:
+    web_directory: "/var/www/html"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Définir le répertoire web pour RedHat/Rocky
+  set_fact:
+    web_directory: "/usr/share/nginx/html"
+  when: ansible_facts['os_family'] == "RedHat"
+
+
+- name: Créer le répertoire web
+  file:
+    path: "{{ web_directory }}"
+    state: directory
+    mode: '0755'
+
+
+- name: Arrêter NGINX existant
+  shell: pkill nginx || true
+  ignore_errors: yes
+
+
+- name: Nettoyer les fichiers par défaut
+  shell: rm -f {{ web_directory }}/index.*
+  ignore_errors: yes
+
+
+- name: Génération du fichier maintenance.html avec Jinja2
+  template:
+    src: templates/maintenance.j2
+    dest: "{{ web_directory }}/maintenance.html"
+    mode: '0644'
+
+
+- name: Activation de la page de maintenance
+  copy:
+    src: "{{ web_directory }}/maintenance.html"
+    dest: "{{ web_directory }}/index.html"
+    remote_src: yes
+    mode: '0644'
+
+
+- name: Vérifier la configuration NGINX
+  shell: nginx -t
+  register: nginx_config_test
+  ignore_errors: yes
+
+- name: Afficher le résultat du test de configuration
+  debug:
+    msg: "{{ nginx_config_test.stdout_lines }}"
+  when: nginx_config_test.stdout_lines is defined
+
+
+- name: Démarrer NGINX en arrière-plan
+  shell: nginx
+  register: nginx_start
+  ignore_errors: yes
+
+
+- name: Vérifier que NGINX écoute
+  shell: netstat -tlnp | grep :80 || ss -tlnp | grep :80
+  register: nginx_listening
+  ignore_errors: yes
+
+- name: Afficher le statut d'écoute de NGINX
+  debug:
+    msg: "{{ nginx_listening.stdout_lines if nginx_listening.stdout_lines else 'NGINX ne semble pas écouter sur le port 80' }}"
+
+
+- name: Démarrer NGINX avec nohup (fallback)
+  shell: nohup nginx -g "daemon off;" > /var/log/nginx-custom.log 2>&1 &
+  when: nginx_listening.rc != 0
+  ignore_errors: yes
+  async: 10
+  poll: 0
+
+
+- name: Attendre que NGINX soit prêt
+  pause:
+    seconds: 3
+
+
+- name: Tester la page de maintenance
+  uri:
+    url: "http://localhost"
+    method: GET
+    timeout: 10
+  register: page_test
+  ignore_errors: yes
+
+- name: Afficher le résultat du test
+  debug:
+    msg: "{{ 'Page de maintenance accessible ✓' if page_test.status == 200 else 'Page non accessible - Code: ' + (page_test.status|string if page_test.status is defined else 'Erreur de connexion') }}"

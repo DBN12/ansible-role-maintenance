@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ nom_app }} - Maintenance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 500px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .maintenance-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .contact {
+            margin-top: 30px;
+            font-size: 1em;
+        }
+        .contact a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="maintenance-icon">Ì¥ß</div>
+        <h1>{{ nom_app }} est en maintenance !</h1>
+        <p>Nous effectuons actuellement une mise √† jour de notre plateforme pour vous offrir une meilleure exp√©rience.</p>
+        <p><strong>Merci de revenir apr√®s {{ fin_maintenance }}.</strong></p>
+        <div class="contact">
+            <p>Pour toute urgence, contactez-nous √† :<br>
+            <a href="mailto:{{ email_contact }}">{{ email_contact }}</a></p>
+        </div>
+    </div>
+</body>
+</html>
